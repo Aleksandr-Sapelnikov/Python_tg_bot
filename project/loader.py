@@ -1,19 +1,57 @@
 import telebot
-from commands import lowprice
-from telebot import types
+# from commands import lowprice
+#
+from telebot.types import BotCommand
 import config
 from api import search_city_id
+from telebot.handler_backends import State, StatesGroup
+from telebot import custom_filters
+from telebot.storage import StateMemoryStorage
 
-bot = telebot.TeleBot(config.bot_token)
+# bot = telebot.TeleBot(config.bot_token)
 
 
-@bot.message_handler(commands=['lowprice'])  # тут надо проверять команды?
-def lowprice_message(message):
-    sent = bot.send_message(message.from_user.id, "Какой город?")
-    bot.register_next_step_handler(sent, search_city_id.get_city_id)
-    # bot.register_next_step_handler(sent, lowprice.get_city_id)
-    # lowprice.lowprice_get(message)
-    print('опять тут')
+def set_default_commands(bot: telebot) -> None:
+    bot.set_my_commands(
+        [BotCommand(*i) for i in config.DEFAULT_COMMANDS])
+
+
+class UserState(StatesGroup):
+    city = State()
+    city_id = State()
+    start_date = State()
+    end_date = State()
+
+
+storage = StateMemoryStorage()
+bot = telebot.TeleBot(config.bot_token, state_storage=storage)
+bot.add_custom_filter(custom_filters.StateFilter(bot))
+
+
+
+#
+# def command_list(message):
+#
+#     @bot.message_handler(commands=['lowprice'])  # тут надо проверять команды?
+#     def lowprice_message(message):
+#         sent = bot.send_message(message.from_user.id, "Какой город?")
+#         bot.register_next_step_handler(sent, search_city_id.get_city_id, 'lowprice')
+#
+#         # city_id = search_city_id.get_city_id(sent, 'lowprice')
+#         # print(city_id)
+#         data = bot.send_message(message.from_user.id, "Какая дата dd-mm-yy?")
+#
+#         # bot.register_next_step_handler(sent, lowprice.get_city_id)
+#         # lowprice.lowprice_get(message)
+#
+#     @bot.message_handler(commands=['hightprice'])  # тут надо проверять команды?
+#     def hightprice_message(message):
+#         pass
+#
+#     def lowprice_continue(message, city_id):
+#         pass
+#         # bot.register_next_step_handler(sent, search_city_id.get_city_id, 'lowprice')
+
 
 # @bot.message_handler(commands=['reg'])
 # def lowprice_message(message):
