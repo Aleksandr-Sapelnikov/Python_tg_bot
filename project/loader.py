@@ -17,11 +17,14 @@ def set_default_commands(bot: telebot) -> None:
 
 
 class UserState(StatesGroup):
+
     city = State()
     city_id = State()
     start_date = State()
     end_date = State()
-
+    adults = State()
+    resultsSize = State()
+    answer = State()
 
 storage = StateMemoryStorage()
 bot = telebot.TeleBot(config.bot_token, state_storage=storage)
@@ -150,5 +153,5 @@ bot.add_custom_filter(custom_filters.StateFilter(bot))
 #             bot.send_message(call.message.chat.id, 'Вы нажали кнопку 2')
 
 #
-if __name__ == '__main__':
-    bot.infinity_polling()
+# if __name__ == '__main__':
+#     bot.infinity_polling()
