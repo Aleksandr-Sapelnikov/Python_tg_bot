@@ -8,8 +8,6 @@ from datetime import date, datetime
 import time
 
 
-# property_dict = {} # аменить на User.property_dict и убрать отсюда
-# answer_dict = {}  # заменить на переменную User.city и убрать отсюда
 headers_1 = {
     "content-type": "application/json",
     "X-RapidAPI-Key": rapid_api_key,
@@ -20,7 +18,6 @@ headers = {
     "X-RapidAPI-Host": "hotels4.p.rapidapi.com"
 }
 
-# hotel_list = list()  # заменить на список из класса User
 pattern = r'\b\d{4}\.\d{2}\.\d{2}\b'
 
 
@@ -30,7 +27,6 @@ def low_get_city_id(message):
     user.city = message.text
     user.property_dict.clear()
 
-    # answer_dict['Город'] = message.text  # заменить на переменную User.city
 
     bot.send_message(message.chat.id, f"Пробуем найти что-то по городу с названием {user.city}")
     querystring = {"q": user.city.lower(), "locale": "en_US", "langid": "1033", "siteid": "300000001"}
@@ -185,18 +181,14 @@ def get_hotel_list(message):
     bot.send_message(message.chat.id, "Обработка...")
     try:
         response = requests.request("POST", url_for_hotel_list, json=payload, headers=headers_1)
-        # print(response.text)
-        data = json.loads(response.text)
 
-        #  для проверки
-        # with open('my_test.json', 'w') as file:
-        #     json.dump(data, file, indent=4)
+        data = json.loads(response.text)
 
         user.hotel_list.clear()
 
         for i_hotel in range(int(user.property_dict['resultsSize'])):  # "resultsSize" 10
             try:
-                # user.current_dict.clear()
+
                 current_dict = {}
                 hotel_id = data['data']['propertySearch']['properties'][i_hotel]["id"]
                 hotel_name = data['data']['propertySearch']['properties'][i_hotel]['name']
@@ -208,13 +200,7 @@ def get_hotel_list(message):
                 image_1_link = data['data']['propertySearch']['properties'][i_hotel]['propertyImage']['image']['url']
                 hotel_price_total = \
                     data['data']['propertySearch']['properties'][i_hotel]['price']['displayMessages'][1]['lineItems'][0]['value']
-                # user.hotel_id = hotel_id
-                # user.current_dict['Id'] = hotel_id
-                # user.current_dict['Название отеля'] = hotel_name
-                # user.current_dict['Цена за ночь'] = hotel_price_per_night
-                # user.current_dict['Всего расходов'] = hotel_price_total
-                # user.current_dict['Расстояние от центра (мили)'] = hotel_distance
-                # user.current_dict['Превью'] = image_1_link
+
                 current_dict['Id'] = hotel_id
                 current_dict['Название отеля'] = hotel_name
                 current_dict['Цена за ночь'] = hotel_price_per_night
@@ -235,14 +221,13 @@ def get_hotel_list(message):
                     response = requests.request("POST", url_for_photo, json=payload_2, headers=headers)
                     data_2 = json.loads(response.text)
                     try:
-                        # user.current_dict['Адрес'] = data_2['data']['propertyInfo'] \
-                        #     ['summary']['location']['address']['addressLine']
+
                         current_dict['Адрес'] = data_2['data']['propertyInfo'] \
                             ['summary']['location']['address']['addressLine']
                         for img in range(6):  # Максимум фотографий
                             image_list.append(data_2['data']['propertyInfo']
                                               ['propertyGallery']['images'][img]['image']['url'])
-                        # user.current_dict['img_links'] = image_list
+
                         current_dict['img_links'] = image_list
 
                     except Exception:
@@ -252,10 +237,8 @@ def get_hotel_list(message):
                     print('Ошибка в запросе фотографий и адреса')
                     bot.send_message(message.chat.id, "Что-то пошло не так")
 
-                # user.hotel_list.append(user.current_dict)
                 user.hotel_list.append(current_dict)
-                # print('Текущий словарь', user.current_dict)
-                # print('Лист отелей после добавления словаря', user.hotel_list)
+
                 print('Текущий словарь', current_dict)
                 print('Лист отелей после добавления словаря', user.hotel_list)
 

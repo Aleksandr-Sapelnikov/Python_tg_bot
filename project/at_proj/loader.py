@@ -43,6 +43,8 @@ class LowState(StatesGroup):
 
 
 class HighState(StatesGroup):
+    count_photo = State()
+    photo = State()
     city = State()
     city_id = State()
     start_date = State()
@@ -53,6 +55,8 @@ class HighState(StatesGroup):
 
 
 class BestState(StatesGroup):
+    count_photo = State()
+    photo = State()
     price = State()
     destination = State()
     city = State()

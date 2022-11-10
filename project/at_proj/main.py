@@ -21,6 +21,9 @@ if __name__ == '__main__':
 
     @loader.bot.message_handler(state=None, commands=['help'])
     def start(message):
+        user = loader.User.get_user(message.from_user.id)
+        cut_time = datetime.now().strftime('%d.%m.%y %H:%M:%S')
+        user.history[cut_time] = message.text
         sent = loader.bot.send_message(message.from_user.id, f"Список команд бота:"
                                                              f"\n/start - Приветствие"
                                                              f"\n/help - Справка"
@@ -49,7 +52,6 @@ if __name__ == '__main__':
         print(sent.text)
         loader.bot.set_state(user_id=message.from_user.id, state=loader.HighState.city, chat_id=message.chat.id)
 
-
     # Сейчас ищет от 300 до 2000$ и 5 звезд и конечно выдает все около 300
 
     @loader.bot.message_handler(state=None, commands=['bestdeal'])
@@ -65,11 +67,18 @@ if __name__ == '__main__':
     @loader.bot.message_handler(state=None, commands=['history'])  # Если писать сообщения больше 1 в сек, то будут проблемы
     def get_history(message):
         user = loader.User.get_user(message.from_user.id)
-        cut_time = datetime.now().strftime('%d.%m.%y %H:%M:%S')
-        user.history[cut_time] = message.text
+        # cut_time = datetime.now().strftime('%d.%m.%y %H:%M:%S')
+        # user.history[cut_time] = message.text
         ans = ''
         for i, j in user.history.items():
             ans += f'[{i}]: {j}\n'
         loader.bot.send_message(message.chat.id, ans)
+
+
+    @loader.bot.message_handler(state=None, content_types=['text'])
+    def start(message):
+        if message.text.lower() == 'привет' or '/hello-world':
+            loader.bot.send_message(message.from_user.id, 'Привет, я - PythonAttestatBot\nМожешь ввести '
+                                                          '/help для просмотра списка команд')
 
     loader.bot.infinity_polling()
