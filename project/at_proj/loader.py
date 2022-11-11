@@ -17,6 +17,9 @@ class User:
         self.hotel_id: str = ""
         self.history: dict = {}
         self.current_dict: dict = {}
+        self.lowprice = False
+        self.highprice = False
+        self.bestdeal = False
 
     @classmethod
     def add_user(cls, user_id, user):
@@ -55,6 +58,20 @@ class HighState(StatesGroup):
 
 
 class BestState(StatesGroup):
+    count_photo = State()
+    photo = State()
+    price = State()
+    destination = State()
+    city = State()
+    city_id = State()
+    start_date = State()
+    end_date = State()
+    adults = State()
+    resultsSize = State()
+    answer = State()
+
+
+class CommandState(StatesGroup):
     count_photo = State()
     photo = State()
     price = State()

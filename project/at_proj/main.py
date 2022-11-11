@@ -1,11 +1,11 @@
 import loader
+import core_commands
 import lowprice
 import highprice
 import bestdeal
 from datetime import datetime
 
-#  Создание бота, который реагирует на команду /hello-world, а также на текст
-#   «Привет» (здесь также необходимо сообщить преподавателю имя вашего бота для тестирования)
+
 if __name__ == '__main__':
     @loader.bot.message_handler(state=None, commands=['start'])
     def start(message):
@@ -40,7 +40,9 @@ if __name__ == '__main__':
         user.history[cut_time] = message.text
         sent = loader.bot.send_message(message.from_user.id, "Какой город?")
         print(sent.text)
-        loader.bot.set_state(user_id=message.from_user.id, state=loader.LowState.city, chat_id=message.chat.id)
+        user.lowprice = True
+        loader.bot.set_state(user_id=message.from_user.id, state=loader.CommandState.city, chat_id=message.chat.id)
+        # loader.bot.set_state(user_id=message.from_user.id, state=loader.LowState.city, chat_id=message.chat.id)
 
 
     @loader.bot.message_handler(state=None, commands=['highprice'])
@@ -50,7 +52,9 @@ if __name__ == '__main__':
         user.history[cut_time] = message.text
         sent = loader.bot.send_message(message.from_user.id, "Какой город?")
         print(sent.text)
-        loader.bot.set_state(user_id=message.from_user.id, state=loader.HighState.city, chat_id=message.chat.id)
+        user.highprice = True
+        loader.bot.set_state(user_id=message.from_user.id, state=loader.CommandState.city, chat_id=message.chat.id)
+        # loader.bot.set_state(user_id=message.from_user.id, state=loader.HighState.city, chat_id=message.chat.id)
 
     # Сейчас ищет от 300 до 2000$ и 5 звезд и конечно выдает все около 300
 
@@ -61,7 +65,9 @@ if __name__ == '__main__':
         user.history[cut_time] = message.text
         sent = loader.bot.send_message(message.from_user.id, "Какой город?")
         print(sent.text)
-        loader.bot.set_state(user_id=message.from_user.id, state=loader.BestState.city, chat_id=message.chat.id)
+        user.bestdeal = True
+        loader.bot.set_state(user_id=message.from_user.id, state=loader.CommandState.city, chat_id=message.chat.id)
+        # loader.bot.set_state(user_id=message.from_user.id, state=loader.BestState.city, chat_id=message.chat.id)
 
 
     @loader.bot.message_handler(state=None, commands=['history'])  # Если писать сообщения больше 1 в сек, то будут проблемы
