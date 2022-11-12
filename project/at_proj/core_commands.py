@@ -1,4 +1,4 @@
-from loader import bot, CommandState, User
+from loader import bot, CommandState, User, Commands
 import telebot
 from config import url_for_city_id, url_for_hotel_list, url_for_photo, headers, headers_1, pattern
 import requests
@@ -14,6 +14,10 @@ pattern_distance = r'\b\d{1,3}[.]?\d* \d{1,3}[.]?\d*\b'
 
 @bot.message_handler(state=CommandState.city)
 def get_city_id(message):
+    """
+    Функция, которая принимает название города и запрашивает дату заезда
+    :param message:
+    """
     user = User.get_user(message.from_user.id)
     user.city = message.text
     user.property_dict.clear()
@@ -39,6 +43,10 @@ def get_city_id(message):
 
 @bot.message_handler(state=CommandState.start_date)
 def check_in_date(message):
+    """
+    Функция, которая принимает дату заезда и запрашивает дату отъезда
+    :param message:
+    """
     user = User.get_user(message.from_user.id)
     print(message.text)
     current_date = date.today()
@@ -70,6 +78,10 @@ def check_in_date(message):
 
 @bot.message_handler(state=CommandState.end_date)
 def check_out_date(message):
+    """
+    Функция, которая принимает дату отъезда и запрашивает количество людей
+    :param message:
+    """
     user = User.get_user(message.from_user.id)
     print(message.text)
     current_date = date.today()
@@ -105,25 +117,29 @@ def check_out_date(message):
 
 @bot.message_handler(state=CommandState.adults)
 def set_adults(message):
+    """
+    Функция, которая принимает количество людей и в зависимости от введенной ранее команды делает запрос
+    :param message:
+    """
     user = User.get_user(message.from_user.id)
     print(message.text)
     if message.text.isdigit():
         if 1 <= int(message.text) <= 6:
             user.property_dict['adults'] = message.text
             print(user.property_dict)
-            if user.lowprice:
+            if user.command == Commands.LOWPRICE: #user.lowprice:
                 user.property_dict['max_price'] = 200
                 user.property_dict['min_price'] = 30
                 user.property_dict['sort'] = "PRICE_LOW_TO_HIGH"
                 bot.send_message(message.chat.id, "Введите сколько нужно вывести предложений (max=10)")
                 bot.set_state(user_id=message.from_user.id, state=CommandState.resultsSize, chat_id=message.chat.id)
-            elif user.highprice:
+            elif user.command == Commands.HIGHPRICE: #user.highprice:
                 user.property_dict['max_price'] = 2000
                 user.property_dict['min_price'] = 300
                 user.property_dict['sort'] = "RECOMMENDED"
                 bot.send_message(message.chat.id, "Введите сколько нужно вывести предложений (max=10)")
                 bot.set_state(user_id=message.from_user.id, state=CommandState.resultsSize, chat_id=message.chat.id)
-            else:
+            elif user.command == Commands.BESTDEAL:
                 user.property_dict['sort'] = "RECOMMENDED"
                 bot.send_message(message.chat.id, "Введите диапазон цен через пробел (min max)")
                 bot.set_state(user_id=message.from_user.id, state=CommandState.price, chat_id=message.chat.id)
@@ -137,6 +153,10 @@ def set_adults(message):
 
 @bot.message_handler(state=CommandState.price)
 def set_price(message):
+    """
+    Функция, которая принимает значение цены и запрашивает диапазон расстояний до центра города
+    :param message:
+    """
     user = User.get_user(message.from_user.id)
     print(message.text)
     if re.fullmatch(pattern_price, message.text):
@@ -161,6 +181,10 @@ def set_price(message):
 
 @bot.message_handler(state=CommandState.destination)
 def set_destination(message):
+    """
+    Функция, которая принимает диапазон расстояний до центра города и запрашивает количество результатов для вывода
+    :param message:
+    """
     print(message.text)
     user = User.get_user(message.from_user.id)
     if re.fullmatch(pattern_distance, message.text):
@@ -172,7 +196,9 @@ def set_destination(message):
                 user.property_dict['max_dist'] = max_dist
                 user.property_dict['min_dist'] = min_dist
                 bot.send_message(message.chat.id, "Введите сколько нужно вывести предложений "
-                                                  "(Будет меньше из-за сортировки по расстоянию до центра) (max=10)")
+                                                  "(Будет меньше из-за сортировки по расстоянию до центра)"
+                                                  "\n(Если указать слишком маленькое значение, "
+                                                  "результатов может вообще не быть (max=10)")
                 bot.set_state(user_id=message.from_user.id, state=CommandState.resultsSize, chat_id=message.chat.id)
         except ValueError:
             msg = bot.send_message(message.chat.id, "При вводе десятичных чисел используйте точку\nПример: 1.11 2.22")
@@ -186,6 +212,11 @@ def set_destination(message):
 
 @bot.message_handler(state=CommandState.resultsSize)
 def get_hotel_list(message):
+    """
+    Функция, которая принимает количество результатов для вывода, делает запрос, проводит сортировку вывода
+     в зависимости от команды и задает вопрос о необходимости фотографий
+    :param message:
+    """
     user = User.get_user(message.from_user.id)
     print(message.text)
     if message.text.isdigit():
@@ -230,7 +261,7 @@ def get_hotel_list(message):
         }}
     }
 
-    if user.highprice:
+    if user.command == Commands.HIGHPRICE:
         payload["filters"]["star"] = ["50"]
 
     print(payload)
@@ -242,7 +273,7 @@ def get_hotel_list(message):
 
         user.hotel_list.clear()
 
-        for i_hotel in range(int(user.property_dict['resultsSize'])):  # "resultsSize" 10
+        for i_hotel in range(int(user.property_dict['resultsSize'])):
             try:
 
                 current_dict = {}
@@ -302,10 +333,10 @@ def get_hotel_list(message):
                 print('Что-то не так в параметрах отеля')
                 bot.send_message(message.chat.id, f"Есть проблемы с некоторыми результатами")
 
-            if user.highprice:
+            if user.command == Commands.HIGHPRICE:
                 user.hotel_list.sort(key=lambda dictionary: float(dictionary['Цена за ночь'][1:]), reverse=True)
 
-            elif user.bestdeal:
+            elif user.command == Commands.BESTDEAL:
                 user.hotel_list =\
                     list(filter(lambda a: user.property_dict['min_dist']
                                 <= a.get('Расстояние от центра (мили)') <= user.property_dict['max_dist'],
@@ -324,6 +355,11 @@ def get_hotel_list(message):
 
 @bot.message_handler(state=CommandState.photo)
 def set_photo_ans(message):
+    """
+    Функция, которая принимает ответ на вопрос о фотографиях, если ответ был "нет", то сразу идет вывод.
+    Если "да", то запрашивается количество фотографий
+    :param message:
+    """
     user = User.get_user(message.from_user.id)
     print(message.text)
     if message.text.lower() == 'нет' or message.text.lower() == 'no' or message.text.lower() == 'ytn':
@@ -356,6 +392,10 @@ def set_photo_ans(message):
 
 @bot.message_handler(state=CommandState.count_photo)
 def set_photo(message):
+    """
+    Функция, которая получает значение количества фотографий и делает финальный вывод, сбрасывая состояние
+    :param message:
+    """
     user = User.get_user(message.from_user.id)
     print(message.text)
     if message.text.isdigit():
@@ -414,7 +454,4 @@ def set_photo(message):
         msg = bot.send_message(message.chat.id, "Что-то не так, убедитесь, что ввели число")
         bot.register_next_step_handler(msg, set_photo)
 
-    user.lowprice = False
-    user.highprice = False
-    user.bestdeal = False
     bot.set_state(user_id=message.from_user.id, state=None, chat_id=message.chat.id)

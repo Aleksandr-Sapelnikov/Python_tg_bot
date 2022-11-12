@@ -3,9 +3,22 @@ import config
 from telebot.handler_backends import State, StatesGroup
 from telebot import custom_filters
 from telebot.storage import StateMemoryStorage
+from enum import Enum
+
+
+class Commands(Enum):
+    """
+    Класс для определения текущей команды
+    """
+    LOWPRICE = 1
+    HIGHPRICE = 2
+    BESTDEAL = 3
 
 
 class User:
+    """
+    Пользовательский класс для хранения списка пользователей, а также их ответов на запросы бота
+    """
     all_users = dict()
 
     def __init__(self, user_id: int) -> None:
@@ -17,9 +30,7 @@ class User:
         self.hotel_id: str = ""
         self.history: dict = {}
         self.current_dict: dict = {}
-        self.lowprice = False
-        self.highprice = False
-        self.bestdeal = False
+        self.command = None
 
     @classmethod
     def add_user(cls, user_id, user):
@@ -33,45 +44,10 @@ class User:
         return cls.all_users[user_id]
 
 
-class LowState(StatesGroup):
-    count_photo = State()
-    photo = State()
-    city = State()
-    city_id = State()
-    start_date = State()
-    end_date = State()
-    adults = State()
-    resultsSize = State()
-    answer = State()
-
-
-class HighState(StatesGroup):
-    count_photo = State()
-    photo = State()
-    city = State()
-    city_id = State()
-    start_date = State()
-    end_date = State()
-    adults = State()
-    resultsSize = State()
-    answer = State()
-
-
-class BestState(StatesGroup):
-    count_photo = State()
-    photo = State()
-    price = State()
-    destination = State()
-    city = State()
-    city_id = State()
-    start_date = State()
-    end_date = State()
-    adults = State()
-    resultsSize = State()
-    answer = State()
-
-
 class CommandState(StatesGroup):
+    """
+    Класс для хранения состояний. Используется в цепочке функций.
+    """
     count_photo = State()
     photo = State()
     price = State()
